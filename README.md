@@ -5,7 +5,8 @@ This project is a tool that will take in a webside link. The tool will then pref
 
 ## Timeline
 
-* Week 1: November 6-8: Learn and code the Page rank Algorthim
+* Week 1: November 6-8: Learn and code the Page rank Algorthim 
+  * Resource link: https://en.wikipedia.org/wiki/PageRank
 * Week 2: November 11-15: Modify the scraping code to match the input form of the page rank algorthim.
 * Week 3: November 18-22: Plan a way to display the output data and learn how to display the data.
 * Week 4: November 25-29: Write code to display the output data
