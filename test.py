@@ -20,7 +20,7 @@ M = np.array([[0, 0, 0, 0, 0, 0],
               [0, 0, 0, 0, 1, 0]])
 """
 
-M, index = get_graph_and_index(["https://versel.info"], 2)
+M, index = get_graph_and_index(["https://en.wikipedia.org/wiki/Lego"], 1)
 
 N = fix_cols(M)
 print(N)

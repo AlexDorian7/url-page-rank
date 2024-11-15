@@ -88,7 +88,7 @@ def get_adjacency_matrix(start_urls, max_depth):
     Create the adjacency matrix for the graph starting from the given URLs.
     """
     url_index = {}  # Map each URL to a unique index
-    adj_matrix = np.zeros((1000, 1000), dtype=int)  # Initialize a large enough adjacency matrix
+    adj_matrix = np.zeros((10000, 10000), dtype=int)  # Initialize a large enough adjacency matrix
     visited = set()  # Track visited pages
 
     build_graph(start_urls, 0, max_depth, url_index, adj_matrix, visited)
