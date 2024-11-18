@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, urlunparse
+from scipy.sparse import lil_matrix
 import numpy as np
 
 def normalize_url(url):
@@ -88,27 +89,24 @@ def get_adjacency_matrix(start_urls, max_depth):
     Create the adjacency matrix for the graph starting from the given URLs.
     """
     url_index = {}  # Map each URL to a unique index
-    adj_matrix = np.zeros((10000, 10000), dtype=int)  # Initialize a large enough adjacency matrix
+    adj_matrix = lil_matrix((100000, 100000), dtype=int)  # Initialize a sparse matrix
     visited = set()  # Track visited pages
 
     build_graph(start_urls, 0, max_depth, url_index, adj_matrix, visited)
 
-    # Resize the matrix to fit the number of unique URLs
+    # Resize the sparse matrix to fit the number of unique URLs
     size = len(url_index)
     adj_matrix = adj_matrix[:size, :size]
-
-    # Ensure the diagonal is zero
-    np.fill_diagonal(adj_matrix, 0)
 
     return adj_matrix, url_index
 
 # Example usage
 if __name__ == "__main__":
-    start_urls = ["https://versel.info"]
+    start_urls = ["https://example.com"]
     max_depth = 2
     adj_matrix, url_index = get_adjacency_matrix(start_urls, max_depth)
 
-    print("Adjacency Matrix:")
+    print("Adjacency Matrix (Sparse Format):")
     print(adj_matrix)
 
     print("\nURL Index:")
