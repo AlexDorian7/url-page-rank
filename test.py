@@ -23,10 +23,10 @@ M = np.array([[0, 0, 0, 0, 0, 0],
 M, index = get_graph_and_index(["https://versel.info"], 1)
 
 N = fix_cols(M)
-print(N)
+# print(N)
 v = page_rank(N, 0.85)
 
-print(v)
+# print(v)
 
 print("Out:")
 for url, i in index.items():
