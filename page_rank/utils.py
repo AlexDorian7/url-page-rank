@@ -1,38 +1,33 @@
 import numpy as np
+from scipy.sparse import csc_matrix
+from tqdm import tqdm  # For the progress bar
 
-# replace cols with values that sum to 1
+# Normalize columns of a sparse matrix
 def fix_cols(M):
+    """
+    Normalize columns of a sparse matrix so that each column sums to 1.
+    
+    Parameters:
+        M (scipy.sparse.csc_matrix): Sparse matrix to normalize.
 
-	# Ensure M is a float array to avoid integer division
-	M = M.astype(float)
+    Returns:
+        scipy.sparse.csc_matrix: Column-normalized sparse matrix.
+    """
+    if not isinstance(M, csc_matrix):
+        M = csc_matrix(M)  # Convert to Compressed Sparse Column format for efficient column operations
 
-	I,J = M.shape  # Get dimensions of the matrix
+    # Ensure the matrix data is float for division operations
+    if M.dtype != np.float64:
+        M = M.astype(np.float64)
 
-	"""
-	print('Initial Adj matrix:')
-	for i in range(I):
-		print('[', end='')
-		for j in range(J):
-			print(M[i][j], " ", end="");
-		print(']');
-	print()
-	"""
+    J = M.shape[1]  # Number of columns
+    col_sums = np.array(M.sum(axis=0)).flatten()  # Compute column sums
 
+    with tqdm(total=J, desc="ColFix Progress", unit="Cols") as pbar:
+        for j in range(J):
+            if col_sums[j] != 0:  # Avoid division by zero
+                M.data[M.indptr[j]:M.indptr[j+1]] /= col_sums[j]  # Normalize column `j`
+            pbar.update(1)
+    
+    return M
 
-	for j in range(J):  # Iterate over each column
-		total = np.sum(M[:, j])  # Sum of the current column
-		# print("total 1's in col: ", total)
-
-		if total != 0:  # Avoid division by zero
-			M[:, j] = M[:, j]/ total # Normalize each element in the column
-			# print out modify matrix
-			"""
-			print("After normalization")
-			for row in range(I):
-				print('[', end='')
-				for col in range(J):
-					print(M[row][col], " ", end='');
-				print(']');
-			"""
-		# print()
-	return M

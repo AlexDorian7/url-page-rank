@@ -3,6 +3,16 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, urlunparse
 from scipy.sparse import lil_matrix
 import numpy as np
+from tqdm import tqdm  # Progress bar
+import time  # Timer
+import os
+import platform
+
+def clear_terminal():
+    if platform.system() == "Windows":
+        os.system("cls")  # For Windows
+    else:
+        os.system("clear")  # For macOS and Linux
 
 def normalize_url(url):
     """
@@ -26,7 +36,7 @@ def get_links(url):
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -40,21 +50,25 @@ def get_links(url):
         return list(absolute_links)
 
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching the URL: {e}")
+        print(f"Error fetching the URL {url}: {e}")
+        print("Skipping Link. Continuing...")
         return []
 
-def build_graph(urls, current, max_depth, url_index, adj_matrix, visited):
+def build_graph(start_url, max_depth, url_index, adj_matrix, visited, progress_bar):
     """
     Recursively build the graph by exploring links up to max_depth.
     """
-    for url in urls:
-        normalized_url = normalize_url(url)
+    to_visit = [(start_url, 0)]  # Initialize with the start URL and depth 0
 
-        # Skip already visited pages
+    while to_visit:
+        current_url, depth = to_visit.pop(0)
+        normalized_url = normalize_url(current_url)
+
         if normalized_url in visited:
+            progress_bar.update(1)
             continue
 
-        # Mark this page as visited
+        # Mark the page as visited
         visited.add(normalized_url)
 
         # Add URL to index if not already present
@@ -76,28 +90,42 @@ def build_graph(urls, current, max_depth, url_index, adj_matrix, visited):
                 url_index[normalized_link] = len(url_index)
 
             link_idx = url_index[normalized_link]
-            adj_matrix[link_idx, url_idx] = 1  # Mark the link from `link` to `url`
+            adj_matrix[link_idx, url_idx] = 1  # Mark the link from `url` to `link`
 
+            # Add to the queue if within depth limit
+            if normalized_link not in visited and depth + 1 <= max_depth:
+                to_visit.append((normalized_link, depth + 1))
+                progress_bar.total += 1
+
+        clear_terminal()
         print(f"{normalized_url}: {len(links)} links found.")
-
-        # Recurse deeper if the depth limit hasn't been reached
-        if current < max_depth:
-            build_graph(links, current + 1, max_depth, url_index, adj_matrix, visited)
+        progress_bar.update(1)
 
 def get_adjacency_matrix(start_urls, max_depth):
     """
     Create the adjacency matrix for the graph starting from the given URLs.
     """
+    start_time = time.time()  # Start timer
+
     url_index = {}  # Map each URL to a unique index
-    adj_matrix = lil_matrix((100000, 100000), dtype=int)  # Initialize a sparse matrix
+    adj_matrix = lil_matrix((1000000, 1000000), dtype=int)  # Initialize a sparse matrix
     visited = set()  # Track visited pages
 
-    build_graph(start_urls, 0, max_depth, url_index, adj_matrix, visited)
+    with tqdm(total=1, desc="Progress", unit="site", dynamic_ncols=True) as progress_bar:
+        for url in start_urls:
+            normalized_url = normalize_url(url)
+            if normalized_url not in visited:
+                #visited.add(normalized_url)
+                build_graph(url, max_depth, url_index, adj_matrix, visited, progress_bar)
+
+    end_time = time.time()  # End timer
+    elapsed_time = end_time - start_time
 
     # Resize the sparse matrix to fit the number of unique URLs
     size = len(url_index)
     adj_matrix = adj_matrix[:size, :size]
 
+    print(f"\nTotal time taken: {elapsed_time:.2f} seconds")
     return adj_matrix, url_index
 
 # Example usage
