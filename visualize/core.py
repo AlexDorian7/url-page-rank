@@ -8,7 +8,7 @@ def save_to_file(index, v):
 			file.write('"URL","Rank"\n')
 			for url, i in index.items():
 				safe = url.replace('"', '\\"')
-				file.write(f'"{safe}","{v[i]}"\n')
+				file.write(f'"{safe}",{v[i]}\n')
 		print(f"Data successfully saved to {file_name}")
 	except Exception as e:
 		print(f"An error occurred while saving the file: {e}")
